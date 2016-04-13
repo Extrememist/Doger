@@ -96,7 +96,7 @@ def message(instance, source, target, text):
 		changes = p.wait()
 		if changes:
 			hash += "[+]"
-		version = "Doger by mniip, version " + hash
+		version = "Beaner by hypermist, version " + hash
 		Irc.instance_send(instance, ("NOTICE", Irc.get_nickname(source), "\x01VERSION " + version + "\x01"), priority = 20)
 	else:
 		commandline = None

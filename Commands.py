@@ -17,9 +17,9 @@ def balance(req, _):
 	confirmed = Transactions.balance(acct)
 	pending = Transactions.balance_unconfirmed(acct)
 	if pending:
-		req.reply("Your balance is Ɖ%i (+Ɖ%i unconfirmed)" % (confirmed, pending))
+		req.reply("Your balance is %iBTB (%iBITB unconfirmed)" % (confirmed, pending))
 	else:
-		req.reply("Your balance is Ɖ%i" % (confirmed))
+		req.reply("Your balance is BITB%i" % (confirmed))
 commands["balance"] = balance
 
 def deposit(req, _):
@@ -49,7 +49,7 @@ def parse_amount(s, acct, all_offset = 0):
 		return int(amount)
 
 def withdraw(req, arg):
-	"""%withdraw <address> [amount] - Sends 'amount' coins to the specified dogecoin address. If no amount specified, sends the whole balance"""
+	"""%withdraw <address> [amount] - Sends 'amount' coins to the specified BitBean address. If no amount specified, sends the whole balance"""
 	if len(arg) == 0:
 		return req.reply(gethelp("withdraw"))
 	acct = Irc.account_names([req.nick])[0]
@@ -66,15 +66,15 @@ def withdraw(req, arg):
 			return req.reply_private(str(e))
 	to = arg[0]
 	if not Transactions.verify_address(to):
-		return req.reply_private(to + " doesn't seem to be a valid dogecoin address")
+		return req.reply_private(to + " doesn't seem to be a valid BitBean address")
 	token = Logger.token()
 	try:
 		tx = Transactions.withdraw(token, acct, to, amount)
-		req.reply("Coins have been sent, see http://dogechain.info/tx/%s [%s]" % (tx, token))
+		req.reply("Coins have been sent, see https://chainz.cryptoid.info/bitb/tx.dws?%s [%s]" % (tx, token))
 	except Transactions.NotEnoughMoney:
-		req.reply_private("You tried to withdraw Ɖ%i (+Ɖ1 TX fee) but you only have Ɖ%i" % (amount, Transactions.balance(acct)))
+		req.reply_private("You tried to withdraw %iBITB (+BITB0.1 TX fee) but you only have BITB%i" % (amount, Transactions.balance(acct)))
 	except Transactions.InsufficientFunds:
-		req.reply("Something went wrong, report this to mniip [%s]" % (token))
+		req.reply("Something went wrong, report this to hypermist [%s]" % (token))
 		Logger.irclog("InsufficientFunds while executing '%s' from '%s'" % (req.text, req.nick))
 commands["withdraw"] = withdraw
 
@@ -115,10 +115,10 @@ def tip(req, arg):
 		if Irc.equal_nicks(req.nick, req.target):
 			req.reply("Done [%s]" % (token))
 		else:
-			req.say("Such %s tipped much Ɖ%i to %s! (to claim /msg Doger help) [%s]" % (req.nick, amount, target_nick(to), token))
-		req.privmsg(target_nick(to), "Such %s has tipped you Ɖ%i (to claim /msg Doger help) [%s]" % (req.nick, amount, token), priority = 10)
+			req.say(" %s tipped BITB%i to %s! (to claim /msg Beaner help) [%s]" % (req.nick, amount, target_nick(to), token))
+		req.privmsg(target_nick(to), "%s has tipped you BITB%i (to claim /msg Beaner help) [%s]" % (req.nick, amount, token), priority = 10)
 	except Transactions.NotEnoughMoney:
-		req.reply_private("You tried to tip Ɖ%i but you only have Ɖ%i" % (amount, Transactions.balance(acct)))
+		req.reply_private("You tried to tip BITB%i but you only have BITB%i" % (amount, Transactions.balance(acct)))
 commands["tip"] = tip
 
 def mtip(req, arg):
@@ -154,7 +154,7 @@ def mtip(req, arg):
 			total += amount
 	balance = Transactions.balance(acct)
 	if total > balance:
-		return req.reply_private("You tried to tip Ɖ%i but you only have Ɖ%i" % (total, balance))
+		return req.reply_private("You tried to tip BITB%i but you only have BITB%i" % (total, balance))
 	accounts = Irc.account_names([target_nick(target) for target in targets])
 	totip = {}
 	failed = ""
@@ -174,7 +174,7 @@ def mtip(req, arg):
 		Transactions.tip_multiple(token, acct, totip)
 		tipped += " [%s]" % (token)
 	except Transactions.NotEnoughMoney:
-		return req.reply_private("You tried to tip Ɖ%i but you only have Ɖ%i" % (total, Transactions.balance(acct)))
+		return req.reply_private("You tried to tip BITB%i but you only have BITB%i" % (total, Transactions.balance(acct)))
 	output = "Tipped:" + tipped
 	if len(failed):
 		output += "  Failed:" + failed
@@ -182,7 +182,7 @@ def mtip(req, arg):
 commands["mtip"] = mtip
 
 def donate(req, arg):
-	"""%donate <amount> - Donate 'amount' coins to help fund the server Doger is running on"""
+	"""%donate <amount> - Donate 'amount' coins to help fund the server Beaner is running on"""
 	if len(arg) < 1:
 		return req.reply(gethelp("donate"))
 	acct = Irc.account_names([req.nick])[0]
@@ -198,9 +198,9 @@ def donate(req, arg):
 	token = Logger.token()
 	try:
 		Transactions.tip(token, acct, toacct, amount)
-		req.reply("Donated Ɖ%i, thank you very much for your donation [%s]" % (amount, token))
+		req.reply("Donated BITB%i, thank you very much for your donation [%s]" % (amount, token))
 	except Transactions.NotEnoughMoney:
-		req.reply_private("You tried to donate Ɖ%i but you only have Ɖ%i" % (amount, Transactions.balance(acct)))
+		req.reply_private("You tried to donate BITB%i but you only have BITB%i" % (amount, Transactions.balance(acct)))
 commands["donate"] = donate
 
 def gethelp(name):
@@ -218,14 +218,14 @@ def _help(req, arg):
 			req.reply(h)
 	else:
 		if not Irc.equal_nicks(req.target, req.nick):
-			return req.reply("I'm Doger, an IRC dogecoin tipbot. For more info do /msg Doger help")
+			return req.reply("I'm Beaner, an IRC BitBean tipbot. For more info do /msg Beaner help")
 		acct = Irc.account_names([req.nick])[0]
 		if acct:
 			ident = "you're identified as \2" + acct + "\2"
 		else:
 			ident = "you're not identified"
-		req.say("I'm Doger, I'm an IRC dogecoin tipbot. To get help about a specific command, say \2%help <command>\2  Commands: %tip %balance %withdraw %deposit %mtip %donate %help".replace("%", Config.config["prefix"]))
-		req.say(("Note that to receive or send tips you should be identified with freenode services (%s). Please consider donating with %%donate. For any support questions, including those related to lost coins, join ##doger" % (ident)).replace("%", Config.config["prefix"]))
+		req.say("I'm Beaner, I'm an IRC BitBean tipbot. To get help about a specific command, say \2%help <command>\2  Commands: %tip %balance %withdraw %deposit %mtip %donate %help".replace("%", Config.config["prefix"]))
+		req.say(("Note that to receive or send tips you should be identified with freenode services (%s). Please consider donating with %%donate. For any support questions, including those related to lost coins, join ##Beaner" % (ident)).replace("%", Config.config["prefix"]))
 commands["help"] = _help
 
 def admin(req, arg):
@@ -320,8 +320,8 @@ def admin(req, arg):
 				inss += " %s:%s" % (instance, ",".join(chans))
 			req.reply("Instances:" + inss)
 		elif command == "balances":
-			database, dogecoind = Transactions.balances()
-			req.reply("Dogecoind: %.8f; Database: %.8f" % (dogecoind, database))
+			database, BitBeand = Transactions.balances()
+			req.reply("BitBeand: %.8f; Database: %.8f" % (BitBeand, database))
 		elif command == "blocks":
 			info, hashd = Transactions.get_info()
 			hashb = Transactions.lastblock.encode("ascii")

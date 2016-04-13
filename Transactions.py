@@ -1,12 +1,12 @@
 import sys, os, threading, traceback, time
-import dogecoinrpc, dogecoinrpc.connection, psycopg2
+import bitbeanrpc, bitbeanrpc.connection, psycopg2
 import Config, Logger, Blocknotify
 
 def database():
 	return psycopg2.connect(database = Config.config["database"])
 
 def daemon():
-	return dogecoinrpc.connect_to_local()
+	return bitbeanrpc.connect_to_local()
 
 cur = database().cursor()
 cur.execute("SELECT block FROM lastblock")
@@ -15,19 +15,19 @@ del cur
 
 class NotEnoughMoney(Exception):
 	pass
-InsufficientFunds = dogecoinrpc.exceptions.InsufficientFunds
+InsufficientFunds = bitbeanrpc.exceptions.InsufficientFunds
 
 unconfirmed = {}
 
-# Monkey-patching dogecoinrpc
+# Monkey-patching bitbeanrpc
 def patchedlistsinceblock(self, block_hash, minconf=1):
 	res = self.proxy.listsinceblock(block_hash, minconf)
-	res['transactions'] = [dogecoinrpc.connection.TransactionInfo(**x) for x in res['transactions']]
+	res['transactions'] = [bitbeanrpc.connection.TransactionInfo(**x) for x in res['transactions']]
 	return res
 try:
 	daemon().listsinceblock("0", 1)
 except TypeError:
-	dogecoinrpc.connection.DogecoinConnection.listsinceblock = patchedlistsinceblock
+	bitbeanrpc.connection.bitbeanConnection.listsinceblock = patchedlistsinceblock
 # End of monkey-patching
 
 def txlog(cursor, token, amt, tx = None, address = None, src = None, dest = None):
@@ -115,7 +115,7 @@ def withdraw(token, account, address, amount):
 	if not cur.rowcount:
 		raise NotEnoughMoney()
 	try:
-		tx = daemon().sendtoaddress(address, amount, comment = "sent with Doger")
+		tx = daemon().sendtoaddress(address, amount, comment = "sent with Beaner")
 	except InsufficientFunds:
 		raise
 	except:
@@ -157,8 +157,8 @@ def balances():
 	cur = database().cursor()
 	cur.execute("SELECT SUM(balance) FROM accounts")
 	db = float(cur.fetchone()[0])
-	dogecoind = float(daemon().getbalance(minconf = Config.config["confirmations"]))
-	return (db, dogecoind)
+	BitBEandd = float(daemon().getbalance(minconf = Config.config["confirmations"]))
+	return (db, BitBeandd)
 
 def get_info():
 	info = daemon().getinfo()
